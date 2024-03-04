@@ -27,8 +27,11 @@ export default (start: number[], end: number[]) =>
                 }
             );
 
-            //@ts-ignore
-            const collection = featureCollection([startPoint, endPoint, simplify(shape, { tolerance: 0.0004 })]);
+            const collection = featureCollection([
+                startPoint,
+                endPoint, //@ts-ignore
+                shape.geometry.coordinates.length > 15 ? simplify(shape, { tolerance: 0.0001 }) : shape,
+            ]);
 
             return {
                 distance: journey.distance_meters,

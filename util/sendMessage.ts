@@ -34,17 +34,17 @@ export default async ({
                 embeds: [
                     {
                         title: `🚴 ${bikeId}`,
-                        description: `🚵 **Dystans**: ${metersToString(distance)}\n⌚ **Czas**: ${timeToString(
+                        description: `🚵 **Dystans**: ${metersToString(distance)}\n⌚ **Czas jazdy**: ${timeToString(
                             duration
                         )}`,
                         fields: [
                             {
-                                name: `🡒 ${startName ? `${start} ${startName}` : "Rower wolnostojący"}`,
+                                name: `<:leave:880898599054102538> ${startName ? `${start} ${startName}` : "Rower wolnostojący"}`,
                                 value: `<t:${Math.floor(startTimestamp / 1000)}:f>`,
                                 inline: true,
                             },
                             {
-                                name: `🡔 ${endName ? `${end} ${endName}` : "Rower wolnostojący"}`,
+                                name: `<:join:880898594452938823> ${endName ? `${end} ${endName}` : "Rower wolnostojący"}`,
                                 value: `<t:${Math.floor(endTimestamp / 1000)}:f>`,
                                 inline: true,
                             },

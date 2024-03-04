@@ -1,10 +1,8 @@
 import fastifyApp, { FastifyRequest } from "fastify";
 import fastifyCors from "@fastify/cors";
 import mongoose from "mongoose";
-import fetchBikes from "./util/fetchBikes";
-import fetchRoute from "./util/fetchRoute";
-import fetchMap from "./util/fetchMap";
-import sendMessage from "./util/sendMessage";
+import updateBikes from "./util/updateBikes";
+import { schedule } from "node-cron";
 
 const fastify = fastifyApp();
 
@@ -21,17 +19,16 @@ fastify.register(fastifyCors, {
     cacheControl: 86400 * 30,
 });
 
-fetchRoute([52.25727585416777, 20.993466356230204], [52.227804794615395, 21.023483982762546]).then((x) =>
-    sendMessage({
-        bikeId: "613574",
-        start: "6971",
-        startName: "Dworzec Gdański",
-        startTimestamp: Date.now() - x.duration * 1000,
-        end: "6412",
-        endName: "Plac Trzech Krzyży",
-        endTimestamp: Date.now(),
-        distance: x.distance,
-        duration: x.duration,
-        image: fetchMap(x.geometry),
-    })
-);
+schedule("* * * * *", updateBikes);
+
+updateBikes();
+
+mongoose
+    .set("strictQuery", true)
+    .connect("mongodb://127.0.0.1:27017/veturilo?retryWrites=true&serverSelectionTimeoutMS=30000")
+    .then(async () => {
+        fastify.listen({ port: 8100 }, (err, address) => {
+            if (err) throw err;
+            console.log(`server listening on ${address}`);
+        });
+    });

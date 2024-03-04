@@ -1,6 +1,6 @@
 export interface Bike {
     id: string;
-    station: string;
+    station?: string;
     stationName?: string;
     location: [number, number];
 }
@@ -29,7 +29,6 @@ export default async (): Promise<Bike[]> => {
             for (const bike of data.data.bikes) {
                 bikes.push({
                     id: bike.bike_id,
-                    station: "0",
                     location: [bike.lat, bike.lon],
                 });
             }

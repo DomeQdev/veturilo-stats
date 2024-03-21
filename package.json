@@ -4,9 +4,11 @@
     "@turf/turf": "^6.5.0",
     "fastify": "^4.26.1",
     "mongoose": "^8.2.0",
+    "mongoose-geojson-schema": "^2.2.5",
     "node-cron": "^3.0.3"
   },
   "devDependencies": {
+    "@types/mongoose-geojson-schema": "^2.1.9",
     "@types/node-cron": "^3.0.11",
     "typescript": "^5.3.3"
   }

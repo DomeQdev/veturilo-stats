@@ -68,6 +68,62 @@ export default (fastify: FastifyInstance, opts: any, done: () => void) => {
         }
     );
 
+    fastify.get(
+        "/findTrips",
+        async (
+            req: FastifyRequest<{
+                Querystring: {
+                    bikeId?: string;
+                    routeId?: string;
+                };
+            }>,
+            res
+        ) => {
+            if (!req.query.bikeId && !req.query.routeId)
+                return res.code(400).send({ error: "Missing bikeId or routeId" });
+
+            const trips = await Trips.aggregate([
+                {
+                    $match: req.query.bikeId ? { bikeId: req.query.bikeId } : { route: req.query.routeId },
+                },
+                {
+                    $lookup: {
+                        from: "routes",
+                        localField: "route",
+                        foreignField: "id",
+                        as: "route",
+                    },
+                },
+                {
+                    $unwind: "$route",
+                },
+                {
+                    $project: {
+                        _id: 0,
+                        id: 1,
+                        start: 1,
+                        end: 1,
+                        route: {
+                            id: 1,
+                            start: 1,
+                            end: 1,
+                            distance: 1,
+                        },
+                    },
+                },
+            ]);
+
+            return trips.map((trip) => ({
+                ...trip,
+                route: {
+                    ...trip.route,
+                    start: global.stations.get(trip.route.start),
+                    end: global.stations.get(trip.route.end),
+                },
+            }));
+        }
+    );
+
     done();
 };
 

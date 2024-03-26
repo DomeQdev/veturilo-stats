@@ -6,8 +6,18 @@ export interface APIRoute {
     duration: number;
 }
 
-export default (start: number[], end: number[]): Promise<APIRoute> =>
-    fetch(
+let activeRequest: Promise<APIRoute> | null = null;
+
+export default async (start: number[], end: number[]): Promise<APIRoute> => {
+    if (activeRequest) {
+        return activeRequest.then(() => fetchRoute(start, end));
+    } else {
+        return fetchRoute(start, end);
+    }
+};
+
+function fetchRoute(start: number[], end: number[]): Promise<APIRoute> {
+    activeRequest = fetch(
         `https://graphhopper.com/api/1/route?vehicle=bike&locale=pl&key=LijBPDQGfu7Iiq80w3HzwB4RUDJbMbhs6BU0dEnn&elevation=false&instructions=false&turn_costs=false&point=${start.join(
             ","
         )}&point=${end.join(",")}`
@@ -21,7 +31,13 @@ export default (start: number[], end: number[]): Promise<APIRoute> =>
                 distance: Math.floor(data.paths[0].distance),
                 duration: data.paths[0].time,
             } as APIRoute;
+        })
+        .finally(() => {
+            activeRequest = null;
         });
+
+    return activeRequest;
+}
 
 function decode(encoded: string) {
     var inv = 1.0 / 1e5;

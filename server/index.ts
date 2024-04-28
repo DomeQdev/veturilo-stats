@@ -1,9 +1,10 @@
 import { FastifyInstance, FastifyRequest } from "fastify";
 import { model } from "mongoose";
-import { BikeSchema, TripSchema } from "../schema";
+import { BikeSchema, RouteSchema, TripSchema } from "../schema";
 
 const DisabledBikes = model("disabledBikes", BikeSchema);
 const PreviousBikes = model("previousBikes", BikeSchema);
+const Routes = model("routes", RouteSchema);
 const Trips = model("trips", TripSchema);
 
 export default (fastify: FastifyInstance, opts: any, done: () => void) => {
@@ -121,6 +122,53 @@ export default (fastify: FastifyInstance, opts: any, done: () => void) => {
                     end: global.stations.get(trip.route.end),
                 },
             }));
+        }
+    );
+
+    fastify.post(
+        "/getRoutesFromMap",
+        async (
+            req: FastifyRequest<{
+                Body: {
+                    bounds: [[number, number], [number, number]];
+                    time: "30min" | "1h" | "1d" | "7d" | "30d" | "y";
+                };
+            }>
+        ) => {
+            if (!req.body.bounds) return { error: "Missing bounds" };
+
+            const routes = await Routes.find({
+                path: {
+                    $geoIntersects: {
+                        $geometry: {
+                            type: "Polygon",
+                            coordinates: [
+                                [
+                                    [req.body.bounds[0][0], req.body.bounds[0][1]],
+                                    [req.body.bounds[0][0], req.body.bounds[1][1]],
+                                    [req.body.bounds[1][0], req.body.bounds[1][1]],
+                                    [req.body.bounds[1][0], req.body.bounds[0][1]],
+                                    [req.body.bounds[0][0], req.body.bounds[0][1]],
+                                ],
+                            ],
+                        },
+                    },
+                },
+            }).lean();
+
+            const trips = await Trips.find({
+                route: {
+                    $in: routes.map((route) => route.id),
+                },
+                end: {
+                    $gte: Date.now() - timeToMiliseconds(req.body.time),
+                },
+            });
+
+            return {
+                routes,
+                trips,
+            };
         }
     );
 

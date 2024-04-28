@@ -34,6 +34,7 @@ export default async () => {
     }
 
     for (const [id, bike] of disabledBikesMap) {
+        console.log(`Bike ${id} has been re-enabled`);
         if (!bikesMap.has(id)) continue;
 
         await DisabledBikes.deleteOne({ bikeId: id });
@@ -50,7 +51,5 @@ export default async () => {
             start: bike.timestamp,
             end: now,
         });
-
-        console.log(`Bike ${id} has been re-enabled`);
     }
 };
